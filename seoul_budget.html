@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>首爾留學之旅</title>
+    
+    <!-- PWA Full Screen 模式關鍵代碼 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="首爾留學">
+    
+    <!-- 你專屬嘅 Google Drive Icon 連結 -->
+    <link rel="apple-touch-icon" href="https://drive.google.com/uc?export=view&id=1-VUSn1GT9TW49jVoi6giLCkZTrf5T9Vc">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Noto+Sans+HK:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        appPurple: '#cebffd',
+                        appGreen: '#3fd6a6',
+                        appYellow: '#fee677',
+                        appDark: '#192131',
+                        appBg: '#f8f9fc',
+                        appWowpass: '#ff7e00'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Noto Sans HK', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #e5e7eb;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        header {
+            padding-top: calc(env(safe-area-inset-top) + 1.5rem) !important;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); }
+        .toggle-checkbox:checked { right: 0; border-color: #3fd6a6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3fd6a6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-item.active { color: #cebffd; }
+    </style>
+</head>
+<body class="flex justify-center h-screen overflow-hidden">
+
+    <!-- Mobile App Container -->
+    <div class="w-full max-w-md bg-appBg h-full relative flex flex-col shadow-2xl overflow-hidden">
+        
+        <!-- Header -->
+        <header class="pb-4 px-6 flex justify-between items-center bg-appBg z-10">
+            <div>
+                <h1 class="text-xl font-bold text-appDark">首爾留學之旅 🇰🇷</h1>
+                <div class="relative inline-flex items-center mt-1">
+                    <select id="monthSelector" onchange="changeMonth()" class="bg-transparent text-xs text-gray-500 font-medium outline-none appearance-none cursor-pointer hover:text-appPurple transition pr-5 relative z-10">
+                        <!-- Options injected by JS -->
+                    </select>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400 absolute right-0 pointer-events-none"></i>
+                </div>
+            </div>
+            <button onclick="toggleModal(true)" class="w-10 h-10 rounded-full bg-appDark flex justify-center items-center card-shadow text-white hover:scale-105 transition">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+        </header>
+
+        <!-- ================= TAB 1: HOME (RECORD) ================= -->
+        <main id="tab-home" class="tab-content active flex-1 overflow-y-auto no-scrollbar px-6 pb-24">
+            
+            <div class="bg-appPurple rounded-[2rem] p-6 text-appDark card-shadow relative overflow-hidden mb-6 mt-2">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-20 rounded-full -mr-10 -mt-10"></div>
+                <div class="relative z-10">
+                    <p class="text-sm font-medium opacity-80 mb-1"><span id="lblHomeMonth">本月</span>總支出 (HKD) <span class="text-[10px] bg-white/40 px-2 py-0.5 rounded ml-1">連一次性</span></p>
+                    <h2 class="text-4xl font-bold tracking-tight mb-2" id="homeTotalHkd">$0.00</h2>
+                    <div class="flex items-center gap-2 mt-4 bg-white/30 w-fit px-3 py-1.5 rounded-full backdrop-blur-sm">
+                        <i data-lucide="coins" class="w-4 h-4"></i>
+                        <span class="text-sm font-semibold" id="homeTotalKrw">₩0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4 flex justify-between items-end">
+                <h3 class="text-lg font-bold text-appDark">最近紀錄</h3>
+                <span class="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded-lg" id="recordCount">0 項</span>
+            </div>
+
+            <div id="historyList" class="space-y-3 pb-4">
+                <!-- Records injected by JS -->
+            </div>
+            
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-10 opacity-50">
+                <i data-lucide="receipt" class="w-12 h-12 mb-3 text-gray-400"></i>
+                <p class="text-sm text-gray-500 font-medium text-center">呢個月無紀錄喎，撳右上角加啦！</p>
+            </div>
+        </main>
+
+        <!-- ================= TAB 2: BUDGET (ANALYTICS) ================= -->
+        <main id="tab-budget" class="tab-content flex-1 overflow-y-auto no-scrollbar px-6 pb-24">
+            
+            <!-- Balances Section (Private) -->
+            <div class="grid grid-cols-2 gap-3 mb-6 mt-2">
+                <div class="bg-white rounded-2xl p-4 card-shadow border-t-4 border-t-appWowpass flex flex-col justify-center">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 rounded-full bg-appWowpass/20 text-appWowpass flex justify-center items-center">
+                            <i data-lucide="credit-card" class="w-3 h-3"></i>
+                        </div>
+                        <p class="text-[10px] font-bold text-gray-500">Wowpass 餘額</p>
+                    </div>
+                    <p class="text-lg font-bold text-appDark" id="wowpassBalanceDisplay">₩0</p>
+                </div>
+                <div class="bg-white rounded-2xl p-4 card-shadow border-t-4 border-t-appGreen flex flex-col justify-center">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 rounded-full bg-appGreen/20 text-emerald-600 flex justify-center items-center">
+                            <i data-lucide="banknote" class="w-3 h-3"></i>
+                        </div>
+                        <p class="text-[10px] font-bold text-gray-500">現金餘額</p>
+                    </div>
+                    <p class="text-lg font-bold text-appDark" id="cashBalanceDisplay">₩0</p>
+                </div>
+            </div>
+
+            <!-- Budget Overview -->
+            <div class="bg-appDark rounded-[2rem] p-6 text-white card-shadow relative overflow-hidden mb-6">
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-5 rounded-full -ml-5 -mb-5"></div>
+                <p class="text-sm font-medium opacity-80 mb-1"><span id="lblBudgetMonth">本月</span>生活費剩餘 (HKD)</p>
+                <h2 class="text-4xl font-bold tracking-tight mb-2 text-appGreen" id="budgetRemainingHkd">$0.00</h2>
+                
+                <div class="mt-5">
+                    <div class="flex justify-between text-xs font-medium mb-1 opacity-80">
+                        <span>已用: <span id="budgetUsedHkd">$0</span></span>
+                        <span>上限: <span id="budgetLimitHkd">$0</span></span>
+                    </div>
+                    <div class="w-full bg-white/20 rounded-full h-2">
+                        <div id="budgetProgressBar" class="bg-appGreen h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2">*已扣除「一次性」及「其他」開支</p>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="bg-white rounded-[1.5rem] p-5 card-shadow mb-6">
+                <h3 class="text-sm font-bold text-appDark mb-4">分類統計 (<span id="lblChartMonth">本月</span>生活費)</h3>
+                <div class="relative h-48 w-full flex justify-center">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category Progress -->
+            <div class="bg-white rounded-[1.5rem] p-5 card-shadow mb-6">
+                <h3 class="text-sm font-bold text-appDark mb-4">各類別預算進度 (HKD)</h3>
+                <div id="categoryProgressList" class="space-y-4"></div>
+            </div>
+        </main>
+
+        <!-- ================= TAB 3: SETTINGS ================= -->
+        <main id="tab-settings" class="tab-content flex-1 overflow-y-auto no-scrollbar px-6 pb-24">
+            
+            <h3 class="text-lg font-bold text-appDark mb-4 mt-2">銀包與 Wowpass 管理</h3>
+            <div class="bg-white rounded-[1.5rem] p-5 card-shadow mb-6 space-y-4 border border-gray-100">
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-500">目前持有韓圜 (Cash)</p>
+                        <p class="text-base font-bold text-appDark" id="settingCashBalance">₩0</p>
+                    </div>
+                    <button onclick="toggleCashModal(true)" class="bg-appGreen/20 text-emerald-700 px-3 py-2 rounded-lg text-xs font-bold shadow-sm">唱錢</button>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-500">目前 Wowpass 餘額</p>
+                        <p class="text-base font-bold text-appDark" id="settingWowpassBalance">₩0</p>
+                    </div>
+                    <button onclick="toggleTransferModal(true)" class="bg-appWowpass/20 text-appWowpass px-3 py-2 rounded-lg text-xs font-bold shadow-sm">現金入卡</button>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-appDark mb-4">系統設定</h3>
+            <div class="bg-white rounded-[1.5rem] p-5 card-shadow mb-6 space-y-4 border border-gray-100">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">自訂匯率 (1 KRW = ? HKD)</label>
+                    <input type="number" step="0.0001" id="setExchangeRate" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-appDark font-bold outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">每月總上限 (HKD)</label>
+                    <input type="number" id="setMonthlyBudget" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-appDark font-bold outline-none">
+                </div>
+                <div class="pt-2 border-t border-gray-100">
+                    <p class="text-xs font-bold text-appDark mb-3">各類別預算上限 (HKD)</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1">平日兩餐</label>
+                            <input type="number" id="setCatDailyFood" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-appDark font-bold outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1">食好西</label>
+                            <input type="number" id="setCatFancyFood" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-appDark font-bold outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1">日用品</label>
+                            <input type="number" id="setCatNecessity" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-appDark font-bold outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-gray-500 mb-1">零食娛樂</label>
+                            <input type="number" id="setCatEntertainment" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-appDark font-bold outline-none">
+                        </div>
+                    </div>
+                </div>
+                <button onclick="saveSettings()" class="w-full bg-appPurple text-white rounded-xl py-3 font-bold text-sm">儲存設定</button>
+            </div>
+
+            <div class="flex gap-3 mb-6">
+                <button onclick="exportToCSV()" class="flex-1 bg-gray-800 text-white rounded-xl py-3 font-bold text-sm flex justify-center items-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+                </button>
+                <button onclick="clearData()" class="px-4 bg-red-50 text-red-500 rounded-xl py-3 font-bold text-sm">清空</button>
+            </div>
+        </main>
+
+        <!-- ================= BOTTOM NAVIGATION ================= -->
+        <nav class="absolute bottom-0 left-0 right-0 bg-appDark text-gray-400 px-6 py-4 pb-8 flex justify-between items-center rounded-t-[1.5rem] z-20">
+            <button onclick="switchTab('home')" id="nav-home" class="nav-item active flex flex-col items-center gap-1 w-16">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span class="text-[10px] font-medium">記帳</span>
+            </button>
+            <button onclick="switchTab('budget')" id="nav-budget" class="nav-item flex flex-col items-center gap-1 w-16">
+                <i data-lucide="pie-chart" class="w-6 h-6"></i>
+                <span class="text-[10px] font-medium">預算</span>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="nav-item flex flex-col items-center gap-1 w-16">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+                <span class="text-[10px] font-medium">設定</span>
+            </button>
+        </nav>
+
+        <!-- ================= MODALS ================= -->
+        <!-- Add Expense Modal -->
+        <div id="addModal" class="fixed inset-0 bg-appDark/60 backdrop-blur-sm z-50 hidden flex-col justify-end transition-opacity opacity-0">
+            <div class="bg-white w-full max-w-md mx-auto rounded-t-[2rem] p-6 pb-10 transform translate-y-full transition-transform duration-300 h-[85vh] overflow-y-auto no-scrollbar" id="modalContent">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-appDark">新增紀錄</h3>
+                    <button type="button" onclick="toggleModal(false)" class="p-2 bg-gray-100 rounded-full text-gray-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <form id="expenseForm" onsubmit="addExpense(event)">
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-500 mb-2">日期時間 (補記)</label>
+                        <input type="datetime-local" id="itemDate" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-appDark outline-none font-medium">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-500 mb-2">買咗咩？</label>
+                        <input type="text" id="itemName" required placeholder="Olive Young 面膜" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-appDark outline-none font-medium">
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex justify-between items-end mb-2">
+                            <label class="block text-xs font-semibold text-gray-500">金額</label>
+                            <div class="flex bg-gray-100 rounded-lg p-0.5">
+                                <button type="button" onclick="switchCurrency('KRW')" id="btnCurrKRW" class="px-3 py-1 rounded-md text-xs font-bold bg-white shadow-sm text-appDark">KRW</button>
+                                <button type="button" onclick="switchCurrency('HKD')" id="btnCurrHKD" class="px-3 py-1 rounded-md text-xs font-bold text-gray-500">HKD</button>
+                            </div>
+                            <input type="hidden" id="selectedCurrency" value="KRW">
+                        </div>
+                        <div class="relative">
+                            <span id="currencySymbol" class="absolute left-4 top-3 text-gray-400 font-bold">₩</span>
+                            <input type="number" step="0.01" id="itemAmount" required class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-appDark font-bold text-lg outline-none">
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-1 ml-1" id="hkdPreview">大約 HKD $0.00</p>
+                    </div>
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-500 mb-2">點樣畀錢？</label>
+                        <div class="flex bg-gray-100 rounded-xl p-1 gap-1">
+                            <button type="button" class="pay-btn flex-1 py-2.5 rounded-lg text-[11px] font-bold bg-white shadow-sm text-appDark flex flex-col items-center gap-1" data-method="wowpass"><i data-lucide="credit-card" class="w-4 h-4 text-appWowpass"></i> Wowpass</button>
+                            <button type="button" class="pay-btn flex-1 py-2.5 rounded-lg text-[11px] font-bold text-gray-500 flex flex-col items-center gap-1" data-method="credit_card"><i data-lucide="credit-card" class="w-4 h-4 text-blue-500"></i> 信用卡</button>
+                            <button type="button" class="pay-btn flex-1 py-2.5 rounded-lg text-[11px] font-bold text-gray-500 flex flex-col items-center gap-1" data-method="cash"><i data-lucide="banknote" class="w-4 h-4 text-emerald-600"></i> 現金</button>
+                        </div>
+                        <input type="hidden" id="paymentMethod" value="wowpass">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-500 mb-2">分類</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" class="cat-btn active bg-appPurple text-white py-2 rounded-xl text-xs font-semibold" data-cat="daily_food">平日兩餐</button>
+                            <button type="button" class="cat-btn bg-gray-100 text-gray-600 py-2 rounded-xl text-xs font-semibold" data-cat="fancy_food">食好西</button>
+                            <button type="button" class="cat-btn bg-gray-100 text-gray-600 py-2 rounded-xl text-xs font-semibold" data-cat="necessity">日用品</button>
+                            <button type="button" class="cat-btn bg-gray-100 text-gray-600 py-2 rounded-xl text-xs font-semibold" data-cat="entertainment">零食娛樂</button>
+                            <button type="button" class="cat-btn bg-gray-100 text-gray-600 py-2 rounded-xl text-xs font-semibold" data-cat="other">其他</button>
+                        </div>
+                        <input type="hidden" id="selectedCategory" value="daily_food">
+                    </div>
+                    <div class="mb-6 space-y-2">
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100">
+                            <div><p class="text-sm font-semibold text-appDark">同朋友些牙？</p><p class="text-[10px] text-gray-500">金額會除以 2</p></div>
+                            <div class="relative inline-block w-10 h-5"><input type="checkbox" id="splitToggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none z-10"/><label for="splitToggle" class="toggle-label block h-5 rounded-full bg-gray-300"></label></div>
+                        </div>
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100">
+                            <div><p class="text-sm font-semibold text-appDark">一次性開支？</p><p class="text-[10px] text-gray-500">機票/電話卡等，唔計預算</p></div>
+                            <div class="relative inline-block w-10 h-5"><input type="checkbox" id="oneOffToggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none z-10"/><label for="oneOffToggle" class="toggle-label block h-5 rounded-full bg-gray-300"></label></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-appDark text-white rounded-xl py-4 font-bold">儲存紀錄</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Cash Modal -->
+        <div id="addCashModal" class="fixed inset-0 bg-appDark/60 backdrop-blur-sm z-50 hidden flex-col justify-center items-center px-4 transition-opacity opacity-0">
+            <div class="bg-white w-full max-w-sm rounded-[2rem] p-6 transform scale-95 transition-transform duration-300" id="cashModalContent">
+                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-appDark">紀錄唱錢</h3><button type="button" onclick="toggleCashModal(false)" class="p-2 bg-gray-100 rounded-full text-gray-500"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+                <form onsubmit="addCash(event)">
+                    <div class="mb-4"><label class="block text-xs font-semibold text-gray-500 mb-2">畀咗 HKD</label><input type="number" step="0.01" id="cashHkdPaid" required class="w-full bg-gray-50 border rounded-xl px-4 py-3 font-bold text-lg outline-none"></div>
+                    <div class="mb-6"><label class="block text-xs font-semibold text-gray-500 mb-2">換咗 KRW</label><input type="number" id="cashKrwReceived" required class="w-full bg-gray-50 border rounded-xl px-4 py-3 font-bold text-lg outline-none"></div>
+                    <button type="submit" class="w-full bg-appGreen text-appDark rounded-xl py-4 font-bold shadow-md">放入現金庫</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Transfer Modal -->
+        <div id="transferModal" class="fixed inset-0 bg-appDark/60 backdrop-blur-sm z-50 hidden flex-col justify-center items-center px-4 transition-opacity opacity-0">
+            <div class="bg-white w-full max-w-sm rounded-[2rem] p-6 transform scale-95 transition-transform duration-300" id="transferModalContent">
+                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-appDark">現金入 Wowpass</h3><button type="button" onclick="toggleTransferModal(false)" class="p-2 bg-gray-100 rounded-full text-gray-500"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+                <form onsubmit="transferToWowpass(event)">
+                    <div class="mb-6"><label class="block text-xs font-semibold text-gray-500 mb-2">入咗幾多？(KRW)</label><input type="number" id="transferAmount" required class="w-full bg-gray-50 border rounded-xl px-4 py-3 font-bold text-lg outline-none"></div>
+                    <button type="submit" class="w-full bg-appWowpass text-white rounded-xl py-4 font-bold shadow-md">確認入錢</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 狀態管理 ---
+        let expenses = JSON.parse(localStorage.getItem('seoulExpenses')) || [];
+        let settings = JSON.parse(localStorage.getItem('seoulSettings')) || {
+            exchangeRate: 0.0057, monthlyBudgetHKD: 6000,
+            catBudgets: { daily_food: 2000, fancy_food: 1500, necessity: 1000, entertainment: 1500 }
+        };
+
+        if (!settings.catBudgets) settings.catBudgets = { daily_food: 2000, fancy_food: 1500, necessity: 1000, entertainment: 1500 };
+
+        let cashWallet = JSON.parse(localStorage.getItem('seoulCashWallet')) || { balance: 0 };
+        let wowpassWallet = JSON.parse(localStorage.getItem('seoulWowpassWallet')) || { balance: 0 };
+        let currentDisplayMonth = getMonthKey(new Date());
+
+        // --- DOM 元素 ---
+        const modal = document.getElementById('addModal');
+        const modalContent = document.getElementById('modalContent');
+        const cashModal = document.getElementById('addCashModal');
+        const cashModalContent = document.getElementById('cashModalContent');
+        const transferModal = document.getElementById('transferModal');
+        const transferModalContent = document.getElementById('transferModalContent');
+        const amountInput = document.getElementById('itemAmount');
+        const hkdPreview = document.getElementById('hkdPreview');
+        const form = document.getElementById('expenseForm');
+        const categoryBtns = document.querySelectorAll('.cat-btn');
+        const selectedCategoryInput = document.getElementById('selectedCategory');
+        const payBtns = document.querySelectorAll('.pay-btn');
+        const paymentMethodInput = document.getElementById('paymentMethod');
+        let chartInstance = null;
+
+        lucide.createIcons();
+
+        // --- 輔助函數 ---
+        function getMonthKey(date) {
+            const d = new Date(date);
+            return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+        }
+        const getCurrentMonthKey = () => getMonthKey(new Date());
+        const formatKRW = (n) => '₩' + Math.round(n).toLocaleString();
+        const formatHKD = (n) => '$' + n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        function getLocalIsoDatetime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            return now.toISOString().slice(0, 16);
+        }
+
+        // --- 標籤頁與月份邏輯 ---
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById(`nav-${tab}`).classList.add('active');
+            updateAllUI(); 
+        }
+
+        function populateMonthSelector() {
+            const selector = document.getElementById('monthSelector');
+            const months = new Set([getCurrentMonthKey()]);
+            expenses.forEach(e => months.add(getMonthKey(e.date)));
+            const sorted = Array.from(months).sort().reverse();
+            selector.innerHTML = '';
+            sorted.forEach(m => {
+                const [y, mm] = m.split('-');
+                const opt = document.createElement('option');
+                opt.value = m; opt.innerText = `${y}年${parseInt(mm)}月`;
+                if(m === currentDisplayMonth) opt.selected = true;
+                selector.appendChild(opt);
+            });
+        }
+
+        function changeMonth() {
+            currentDisplayMonth = document.getElementById('monthSelector').value;
+            updateAllUI();
+        }
+
+        // --- 彈窗邏輯 ---
+        function toggleModal(show) {
+            if(show) {
+                document.getElementById('itemDate').value = getLocalIsoDatetime();
+                modal.classList.remove('hidden'); modal.classList.add('flex');
+                setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('translate-y-full'); }, 10);
+            } else {
+                modal.classList.add('opacity-0'); modalContent.classList.add('translate-y-full');
+                setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); form.reset(); switchCurrency('KRW'); selectCategory('daily_food'); selectPayment('wowpass'); }, 300);
+            }
+        }
+
+        function toggleCashModal(show) {
+            if(show) {
+                cashModal.classList.remove('hidden'); cashModal.classList.add('flex');
+                setTimeout(() => { cashModal.classList.remove('opacity-0'); cashModalContent.classList.remove('scale-95'); }, 10);
+            } else {
+                cashModal.classList.add('opacity-0'); cashModalContent.classList.add('scale-95');
+                setTimeout(() => { cashModal.classList.add('hidden'); cashModal.classList.remove('flex'); document.getElementById('cashHkdPaid').value=''; document.getElementById('cashKrwReceived').value=''; }, 300);
+            }
+        }
+
+        function toggleTransferModal(show) {
+            if(show) {
+                transferModal.classList.remove('hidden'); transferModal.classList.add('flex');
+                setTimeout(() => { transferModal.classList.remove('opacity-0'); transferModalContent.classList.remove('scale-95'); }, 10);
+            } else {
+                transferModal.classList.add('opacity-0'); transferModalContent.classList.add('scale-95');
+                setTimeout(() => { transferModal.classList.add('hidden'); transferModal.classList.remove('flex'); document.getElementById('transferAmount').value=''; }, 300);
+            }
+        }
+
+        function switchCurrency(curr) {
+            document.getElementById('selectedCurrency').value = curr;
+            document.getElementById('btnCurrKRW').className = curr==='KRW' ? "px-3 py-1 rounded-md text-xs font-bold bg-white shadow-sm text-appDark" : "px-3 py-1 rounded-md text-xs font-bold text-gray-500";
+            document.getElementById('btnCurrHKD').className = curr==='HKD' ? "px-3 py-1 rounded-md text-xs font-bold bg-white shadow-sm text-appDark" : "px-3 py-1 rounded-md text-xs font-bold text-gray-500";
+            document.getElementById('currencySymbol').innerText = curr==='KRW' ? '₩' : '$';
+            amountInput.dispatchEvent(new Event('input'));
+        }
+
+        amountInput.addEventListener('input', () => {
+            const val = parseFloat(amountInput.value) || 0;
+            const isShared = document.getElementById('splitToggle').checked;
+            const curr = document.getElementById('selectedCurrency').value;
+            if(curr==='KRW') {
+                const hkd = val * settings.exchangeRate;
+                hkdPreview.innerText = `大約 HKD ${formatHKD(isShared ? hkd/2 : hkd)}`;
+            } else {
+                const krw = val / settings.exchangeRate;
+                hkdPreview.innerText = `大約 KRW ${formatKRW(isShared ? krw/2 : krw)}`;
+            }
+        });
+
+        document.getElementById('splitToggle').addEventListener('change', () => amountInput.dispatchEvent(new Event('input')));
+
+        function selectCategory(catName) {
+            categoryBtns.forEach(btn => {
+                btn.classList.remove('bg-appPurple', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-600');
+                if (btn.dataset.cat === catName) {
+                    btn.classList.replace('bg-gray-100', 'bg-appPurple');
+                    btn.classList.replace('text-gray-600', 'text-white');
+                }
+            });
+            selectedCategoryInput.value = catName;
+        }
+
+        categoryBtns.forEach(btn => btn.addEventListener('click', () => selectCategory(btn.dataset.cat)));
+
+        payBtns.forEach(btn => btn.addEventListener('click', () => selectPayment(btn.dataset.method)));
+        function selectPayment(m) {
+            payBtns.forEach(b => {
+                b.classList.remove('bg-white', 'shadow-sm', 'text-appDark'); b.classList.add('text-gray-500');
+                if(b.dataset.method === m) { b.classList.add('bg-white', 'shadow-sm', 'text-appDark'); b.classList.remove('text-gray-500'); }
+            });
+            paymentMethodInput.value = m;
+        }
+
+        // --- 數據操作 ---
+        function addExpense(e) {
+            e.preventDefault();
+            const val = parseFloat(amountInput.value);
+            const curr = document.getElementById('selectedCurrency').value;
+            let krw = curr==='KRW' ? val : val / settings.exchangeRate;
+            let hkd = curr==='HKD' ? val : val * settings.exchangeRate;
+            const payMethod = paymentMethodInput.value;
+            
+            if(payMethod==='cash') cashWallet.balance -= krw;
+            else if(payMethod==='wowpass') wowpassWallet.balance -= krw;
+
+            expenses.push({
+                id: Date.now().toString(), name: document.getElementById('itemName').value,
+                krw, hkd, originalCurrency: curr, paymentMethod: payMethod,
+                isShared: document.getElementById('splitToggle').checked,
+                isOneOff: document.getElementById('oneOffToggle').checked,
+                category: selectedCategoryInput.value,
+                date: new Date(document.getElementById('itemDate').value).toISOString()
+            });
+            expenses.sort((a,b) => new Date(b.date) - new Date(a.date));
+            saveData(); updateAllUI(); toggleModal(false);
+        }
+
+        function deleteExpense(id) {
+            const exp = expenses.find(e => e.id === id);
+            if(exp) {
+                if(exp.paymentMethod==='cash') cashWallet.balance += exp.krw;
+                else if(exp.paymentMethod==='wowpass') wowpassWallet.balance += exp.krw;
+            }
+            expenses = expenses.filter(e => e.id !== id);
+            saveData(); updateAllUI();
+        }
+
+        function addCash(e) {
+            e.preventDefault();
+            const hkd = parseFloat(document.getElementById('cashHkdPaid').value);
+            const krw = parseFloat(document.getElementById('cashKrwReceived').value);
+            cashWallet.balance += krw;
+            if(confirm(`成功！當前匯率為 1 KRW = ${(hkd/krw).toFixed(4)} HKD。要更新預設匯率嗎？`)) settings.exchangeRate = hkd/krw;
+            saveData(); updateAllUI(); toggleCashModal(false);
+        }
+
+        function transferToWowpass(e) {
+            e.preventDefault();
+            const amt = parseFloat(document.getElementById('transferAmount').value);
+            if(amt > cashWallet.balance) { alert('現金庫唔夠錢喎！'); return; }
+            cashWallet.balance -= amt; wowpassWallet.balance += amt;
+            saveData(); updateAllUI(); toggleTransferModal(false);
+        }
+
+        function saveSettings() {
+            settings.exchangeRate = parseFloat(document.getElementById('setExchangeRate').value) || 0.0057;
+            settings.monthlyBudgetHKD = parseFloat(document.getElementById('setMonthlyBudget').value) || 6000;
+            settings.catBudgets = {
+                daily_food: parseFloat(document.getElementById('setCatDailyFood').value) || 0,
+                fancy_food: parseFloat(document.getElementById('setCatFancyFood').value) || 0,
+                necessity: parseFloat(document.getElementById('setCatNecessity').value) || 0,
+                entertainment: parseFloat(document.getElementById('setCatEntertainment').value) || 0
+            };
+            saveData(); updateAllUI(); alert('已儲存！');
+        }
+
+        function saveData() {
+            localStorage.setItem('seoulExpenses', JSON.stringify(expenses));
+            localStorage.setItem('seoulSettings', JSON.stringify(settings));
+            localStorage.setItem('seoulCashWallet', JSON.stringify(cashWallet));
+            localStorage.setItem('seoulWowpassWallet', JSON.stringify(wowpassWallet));
+        }
+
+        function clearData() {
+            if(confirm('確定清空所有數據？')) { expenses=[]; cashWallet.balance=0; wowpassWallet.balance=0; saveData(); updateAllUI(); }
+        }
+
+        function exportToCSV() {
+            let csv = "\ufeff日期,項目,分類,付款,貨幣,金額(KRW),金額(HKD),些牙,一次性\n";
+            expenses.forEach(e => {
+                const pbK = e.isShared ? e.krw/2 : e.krw;
+                const pbH = e.isShared ? e.hkd/2 : e.hkd;
+                csv += `"${new Date(e.date).toLocaleString()}","${e.name}","${e.category}","${e.paymentMethod}","${e.originalCurrency}",${pbK.toFixed(0)},${pbH.toFixed(2)},${e.isShared?'是':'否'},${e.isOneOff?'是':'否'}\n`;
+            });
+            const blob = new Blob([csv], {type:'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href=url; a.download='seoul_budget.csv'; a.click();
+        }
+
+        // --- 介面更新 ---
+        function updateAllUI() {
+            const setEx = document.getElementById('setExchangeRate');
+            if (setEx) setEx.value = settings.exchangeRate;
+
+            const setBudget = document.getElementById('setMonthlyBudget');
+            if (setBudget) setBudget.value = settings.monthlyBudgetHKD;
+
+            const setDaily = document.getElementById('setCatDailyFood');
+            if (setDaily) setDaily.value = settings.catBudgets.daily_food;
+
+            const setFancy = document.getElementById('setCatFancyFood');
+            if (setFancy) setFancy.value = settings.catBudgets.fancy_food;
+
+            const setNec = document.getElementById('setCatNecessity');
+            if (setNec) setNec.value = settings.catBudgets.necessity;
+
+            const setEnt = document.getElementById('setCatEntertainment');
+            if (setEnt) setEnt.value = settings.catBudgets.entertainment;
+
+            document.getElementById('cashBalanceDisplay').innerText = formatKRW(cashWallet.balance);
+            document.getElementById('settingCashBalance').innerText = formatKRW(cashWallet.balance);
+            document.getElementById('wowpassBalanceDisplay').innerText = formatKRW(wowpassWallet.balance);
+            document.getElementById('settingWowpassBalance').innerText = formatKRW(wowpassWallet.balance);
+
+            populateMonthSelector();
+            const isCurr = currentDisplayMonth === getCurrentMonthKey();
+            const label = isCurr ? '本月' : '該月';
+            document.getElementById('lblHomeMonth').innerText = label;
+            document.getElementById('lblBudgetMonth').innerText = label;
+            document.getElementById('lblChartMonth').innerText = label;
+
+            let totalHKD = 0, totalKRW = 0, budgetUsedHKD = 0, catUsedHKD = {daily_food:0, fancy_food:0, necessity:0, entertainment:0, other:0};
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            let count = 0;
+
+            expenses.forEach(e => {
+                const month = getMonthKey(e.date);
+                if(month !== currentDisplayMonth) return;
+                count++;
+                const pbK = e.isShared ? e.krw/2 : e.krw;
+                const pbH = e.isShared ? e.hkd/2 : e.hkd;
+                totalKRW += pbK; totalHKD += pbH;
+                if(!e.isOneOff) {
+                    catUsedHKD[e.category] += pbH;
+                    if(e.category !== 'other') budgetUsedHKD += pbH;
+                }
+
+                const cat = {
+                    daily_food: {icon:'utensils', color:'bg-orange-100 text-orange-600', hex:'#f97316', label:'平日兩餐'},
+                    fancy_food: {icon:'sparkles', color:'bg-pink-100 text-pink-600', hex:'#ec4899', label:'食好西'},
+                    necessity: {icon:'shopping-cart', color:'bg-appGreen/20 text-emerald-600', hex:'#10b981', label:'日用品'},
+                    entertainment: {icon:'gamepad-2', color:'bg-appPurple/40 text-purple-700', hex:'#8b5cf6', label:'零食娛樂'},
+                    other: {icon:'box', color:'bg-gray-200 text-gray-600', hex:'#6b7280', label:'其他'}
+                }[e.category];
+
+                const payIcon = e.paymentMethod==='cash' ? '<i data-lucide="banknote" class="w-3 h-3 text-emerald-600"></i>' : (e.paymentMethod==='wowpass'?'<i data-lucide="credit-card" class="w-3 h-3 text-[#ff7e00]"></i>':'<i data-lucide="credit-card" class="w-3 h-3 text-blue-500"></i>');
+
+                list.innerHTML += `
+                    <div class="bg-white rounded-2xl p-4 flex items-center justify-between card-shadow relative group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full ${cat.color} flex justify-center items-center shrink-0 relative">
+                                <i data-lucide="${cat.icon}" class="w-4 h-4"></i>
+                                <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-gray-100">${payIcon}</div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-appDark text-sm">${e.name}</h4>
+                                <div class="flex items-center gap-1.5 mt-1 text-[10px] text-gray-400">
+                                    <span>${new Date(e.date).toLocaleDateString()}</span>
+                                    ${e.isShared?'<span class="bg-appGreen/20 text-emerald-700 px-1 rounded font-bold">半</span>':''}
+                                    ${e.isOneOff?'<span class="bg-red-100 text-red-600 px-1 rounded font-bold">一次</span>':''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-appDark text-sm">${e.originalCurrency==='HKD' ? formatHKD(pbH) : formatKRW(pbK)}</p>
+                            <p class="text-[10px] text-gray-500 font-medium">${e.originalCurrency==='HKD' ? formatKRW(pbK) : formatHKD(pbH)}</p>
+                        </div>
+                        <button onclick="deleteExpense('${e.id}')" class="absolute -right-2 -top-2 w-6 h-6 bg-red-100 text-red-500 rounded-full flex justify-center items-center opacity-0 group-hover:opacity-100 transition shadow-sm"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    </div>
+                `;
+            });
+
+            document.getElementById('emptyState').classList.toggle('hidden', count > 0);
+            document.getElementById('emptyState').classList.toggle('flex', count === 0);
+            document.getElementById('homeTotalHkd').innerText = formatHKD(totalHKD);
+            document.getElementById('homeTotalKrw').innerText = formatKRW(totalKRW);
+            document.getElementById('recordCount').innerText = `${count} 項`;
+
+            const rem = settings.monthlyBudgetHKD - budgetUsedHKD;
+            const pct = Math.min((budgetUsedHKD / settings.monthlyBudgetHKD) * 100, 100);
+            document.getElementById('budgetRemainingHkd').innerText = formatHKD(rem);
+            document.getElementById('budgetRemainingHkd').className = `text-4xl font-bold tracking-tight mb-2 ${rem<0?'text-red-400':'text-appGreen'}`;
+            document.getElementById('budgetUsedHkd').innerText = formatHKD(budgetUsedHKD);
+            document.getElementById('budgetLimitHkd').innerText = formatHKD(settings.monthlyBudgetHKD);
+            const pb = document.getElementById('budgetProgressBar');
+            pb.style.width = `${pct}%`;
+            pb.className = `h-2 rounded-full transition-all duration-500 ${pct>85?'bg-red-500':(pct>60?'bg-appYellow':'bg-appGreen')}`;
+
+            const prog = document.getElementById('categoryProgressList');
+            prog.innerHTML = '';
+            ['daily_food','fancy_food','necessity','entertainment'].forEach(c => {
+                const lim = settings.catBudgets[c]||0, u = catUsedHKD[c], p = lim>0 ? Math.min((u/lim)*100,100) : 0;
+                const d = {daily_food:{l:'平日兩餐',i:'utensils'},fancy_food:{l:'食好西',i:'sparkles'},necessity:{l:'日用品',i:'shopping-cart'},entertainment:{l:'零食娛樂',i:'gamepad-2'}}[c];
+                prog.innerHTML += `<div><div class="flex justify-between text-xs font-medium mb-1"><span class="text-gray-700 flex items-center gap-1"><i data-lucide="${d.i}" class="w-3 h-3"></i>${d.l}</span><span class="${u>lim?'text-red-500':'text-gray-500'}">$${Math.round(u)} / $${lim}</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="h-1.5 rounded-full bg-appPurple" style="width:${p}%"></div></div></div>`;
+            });
+
+            lucide.createIcons();
+            if(document.getElementById('tab-budget').classList.contains('active')) updateBudgetChart();
+        }
+
+        function updateBudgetChart() {
+            let totals = {daily_food:0, fancy_food:0, necessity:0, entertainment:0, other:0};
+            expenses.forEach(e => { if(getMonthKey(e.date) === currentDisplayMonth && !e.isOneOff) totals[e.category] += (e.isShared?e.hkd/2:e.hkd); });
+            const data = [totals.daily_food, totals.fancy_food, totals.necessity, totals.entertainment, totals.other];
+            const hasData = data.some(v => v > 0);
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type:'doughnut', data:{ labels:['平日','大餐','日用品','娛樂零食','其他'], datasets:[{ data:hasData?data:[1], backgroundColor:hasData?['#f97316','#ec4899','#10b981','#8b5cf6','#6b7280']:['#e5e7eb'], borderWidth:0 }] },
+                options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{ legend:{position:'right',labels:{boxWidth:10,font:{size:10,family:'Poppins'}}}, tooltip:{enabled:hasData} } }
+            });
+        }
+
+        window.onload = function() {
+            updateAllUI();
+        };
+    </script>
+</body>
+</html>
